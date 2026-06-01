@@ -6,6 +6,8 @@ hosts:
       image: xubuntu-noble-x86_64
       mgmt_user: ubuntu
     flavor: c4_r8_d60
+    icmp_targets:
+      - interface: ens3    
 
 routers:
   - name: router
@@ -13,6 +15,8 @@ routers:
       image: debian-12-x86_64
       mgmt_user: debian
     flavor: standard.small
+    icmp_targets:
+      - interface: ens3    
 
 networks:
   - name: network
@@ -37,11 +41,11 @@ groups:
     nodes:
       - xubuntu-desktop
       - router
-  - name: monitor-icmp 
+  - name: monitor-icmp
     nodes:
       - xubuntu-desktop
       - router
-
+      
 monitoring_targets:
   - node: xubuntu-desktop
     targets:
