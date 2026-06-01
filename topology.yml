@@ -32,5 +32,18 @@ router_mappings:
       network: network
       ip: 10.0.0.1
 
-groups: []
+groups:
+  - name: monitor-os
+    nodes:
+      - xubuntu-desktop
+      - router
+  - name: monitor-icmp 
+    nodes:
+      - xubuntu-desktop
+      - router
 
+monitoring_targets:
+  - node: xubuntu-desktop
+    targets:
+      - port: 22
+        interface: ens3
