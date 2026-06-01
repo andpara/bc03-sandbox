@@ -9,6 +9,22 @@
       user_access_sudo: True
       
   tasks:
-    - name: Print hello world
+    - name: Print message
       debug:
-        msg: "Hello World"
+        msg: "installing gns3 ..."
+        
+    - name: Install GNS3 repository
+      apt_repository:
+        repo: ppa:gns3/ppa
+        state: present
+    
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+    
+    - name: Install GNS3
+      apt:
+        name:
+          - gns3-gui
+          - gns3-server
+        state: present
