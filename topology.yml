@@ -7,7 +7,8 @@ hosts:
       mgmt_user: ubuntu
     flavor: c4_r8_d60
     icmp_targets:
-      - interface: ens3    
+      - targets:
+          - interface: ens3
 
 routers:
   - name: router
@@ -16,7 +17,8 @@ routers:
       mgmt_user: debian
     flavor: standard.small
     icmp_targets:
-      - interface: ens3    
+      - targets:
+          - interface: ens3 
 
 networks:
   - name: network
