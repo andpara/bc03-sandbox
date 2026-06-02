@@ -6,9 +6,6 @@ hosts:
       image: xubuntu-noble-x86_64
       mgmt_user: ubuntu
     flavor: c4_r8_d60
-    icmp_targets:
-      - targets:
-          - interface: ens3
 
 routers:
   - name: router
@@ -16,9 +13,6 @@ routers:
       image: debian-12-x86_64
       mgmt_user: debian
     flavor: standard.small
-    icmp_targets:
-      - targets:
-          - interface: ens3 
 
 networks:
   - name: network
@@ -38,18 +32,27 @@ router_mappings:
       network: network
       ip: 10.0.0.1
 
-groups:
-  - name: monitor-os
-    nodes:
-      - xubuntu-desktop
-      - router
-  - name: monitor-icmp
-    nodes:
-      - xubuntu-desktop
-      - router
-      
 monitoring_targets:
-  - node: xubuntu-desktop
+  tcp:
+    - node: xubuntu-desktop
+      targets:
+        - port: 22
+          address: 10.0.0.10
+    - node: router
+      targets:
+        - port: 80
+          interface: ens3
+
+  icmp:
+    - node: xubuntu-desktop
+      targets:
+        - address: 10.0.0.10
+    - node: router
+      targets:
+        - interface: ens3
+        - address: 10.0.0.1
+  http:
     targets:
-      - port: 22
-        interface: ens3
+      - url: https://example.com
+        check_string: "test"
+      - url: http://10.0.0.10:8080/status
