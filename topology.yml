@@ -37,23 +37,21 @@ monitoring_targets:
     - node: xubuntu-desktop
       targets:
         - port: 22
-          address: 10.0.0.10
+          interface: network
     - node: router
       targets:
         - port: 80
-          interface: network  
+          interface: network
 
   icmp:
     - node: xubuntu-desktop
       targets:
-        - address: 10.0.0.10
+        - interface: network
     - node: router
       targets:
         - interface: network
-        - address: 10.0.0.1
-        
+
   http:
     targets:
       - url: https://example.com
         check_string: "test"
-      - url: http://10.0.0
