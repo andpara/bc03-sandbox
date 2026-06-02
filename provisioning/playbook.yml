@@ -28,3 +28,8 @@
           - gns3-gui
           - gns3-server
         state: present
+        
+    - name: change ubridge permissions
+      file:
+        path: /usr/bin/ubridge
+        mode: '0755'
