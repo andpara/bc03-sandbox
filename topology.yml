@@ -33,16 +33,6 @@ router_mappings:
       ip: 10.0.0.1
 
 monitoring_targets:
-  tcp:
-    - node: xubuntu-desktop
-      targets:
-        - port: 22
-          address: 10.0.0.10
-    - node: router
-      targets:
-        - port: 80
-          interface: ens3
-
   icmp:
     - node: xubuntu-desktop
       targets:
@@ -50,8 +40,3 @@ monitoring_targets:
     - node: router
       targets:
         - address: 10.0.0.1
-  http:
-    targets:
-      - url: https://example.com
-        check_string: "test"
-      - url: http://10.0.0.10:8080/status
