@@ -46,11 +46,9 @@ monitoring_targets:
   icmp:
     - node: xubuntu-desktop
       targets:
-        - interface: ens3      
         - address: 10.0.0.10
     - node: router
       targets:
-        - interface: ens3
         - address: 10.0.0.1
   http:
     targets:
