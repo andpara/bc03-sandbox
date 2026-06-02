@@ -33,16 +33,11 @@ router_mappings:
       ip: 10.0.0.1
 
 groups:
+  - name: monitor-os
+    nodes:
+      - xubuntu-desktop
+      - router
   - name: monitor-icmp
     nodes:
       - xubuntu-desktop
       - router
-
-monitoring_targets:
-  icmp:
-    - node: xubuntu-desktop
-      targets:
-        - address: "10.0.0.10"
-    - node: router
-      targets:
-        - address: "10.0.0.1"
