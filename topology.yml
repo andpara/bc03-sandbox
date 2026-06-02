@@ -41,3 +41,5 @@ groups:
     nodes:
       - xubuntu-desktop
       - router
+
+monitoring_targets: []
