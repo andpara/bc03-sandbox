@@ -37,12 +37,3 @@ groups:
     nodes:
       - xubuntu-desktop
       - router
-
-monitoring_targets:
-  icmp:
-    - node: xubuntu-desktop
-      targets:
-        - address: 10.0.0.10
-    - node: router
-      targets:
-        - address: 10.0.0.1
