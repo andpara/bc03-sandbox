@@ -17,12 +17,12 @@ wan:
   name: internet-connection
   cidr: 10.10.10.0/24
 
+net_mappings: []
+
 router_mappings:
     - router: xubuntu-desktop
       network: network
       ip: 10.0.0.1
-
-net_mappings: []
 
 groups: []
 
