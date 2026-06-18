@@ -112,36 +112,40 @@
         group: "{{ target_user }}"
         mode: '0755'
 
-    - name: List contents of /opt
-      command: ls -lah /opt
-      register: opt_contents
-      changed_when: false
-    
-    - name: Print contents of /opt
-      debug:
-        var: opt_contents.stdout_lines
-
     # 11. Locate the source folder to verify its existence
-    - name: Check if source /opt/gns3/images directory exists
-      ansible.builtin.stat:
+    - name: Check source location
+      stat:
         path: /opt/gns3/images
-      register: gns3_source_dir
+      register: images_in_opt
+    
+    - name: Check destination location
+      stat:
+        path: /home/{{ target_user }}/GNS3/images
+      register: images_in_home
 
-    # 12. Hard stop if the source images directory is completely missing
-    - name: Enforce existence of source images folder
-      ansible.builtin.fail:
-        msg: "Fatal: /opt/gns3/images does not exist! Stopping playbook execution."
-      when: not gns3_source_dir.stat.exists or not gns3_source_dir.stat.isdir
+    # 12. Hard stop if the images directory is completely missing
+    - name: Fail if images are missing
+      fail:
+        msg: >
+          Fatal: GNS3 images were not found in either
+          /opt/gns3/images or /home/{{ target_user }}/GNS3/images
+          Stopping playbook execution.
+      when:
+        - not images_in_opt.stat.exists
+        - not images_in_home.stat.exists
 
-    # 13. Move Cisco images to the target trainee profile folder
+    # 13. Move images to the target trainee profile folder
     - name: Move GNS3 images to trainee home directory
-      ansible.builtin.command:
+      command:
         cmd: mv /opt/gns3/images /home/{{ target_user }}/GNS3/
+      when:
+        - images_in_opt.stat.exists
+        - not images_in_home.stat.exists
       changed_when: true
 
     # 14. Fix file permissions recursively for the trainee profile
-    - name: Ensure correct ownership of moved GNS3 images
-      ansible.builtin.file:
+    - name: Ensure correct ownership of GNS3 images
+      file:
         path: "/home/{{ target_user }}/GNS3/images"
         state: directory
         recurse: true
