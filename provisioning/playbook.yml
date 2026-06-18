@@ -112,25 +112,25 @@
         group: "{{ target_user }}"
         mode: '0755'
     
-    - name: List contents of /opt/gns3/images
+    - name: List contents of /opt/gns3
       shell: |
-        if [ -d /opt/gns3/images ]; then
-          find /opt/gns3/images
+        if [ -d /opt/gns3 ]; then
+          find /opt/gns3
         else
           echo "DIRECTORY NOT FOUND"
         fi
       register: opt_images_listing
       changed_when: false
     
-    - name: Print /opt/gns3/images contents
+    - name: Print /opt/gns3 contents
       debug:
         msg: "{{ opt_images_listing.stdout_lines }}"
 
 
     - name: List contents of trainee GNS3 images
       shell: |
-        if [ -d /home/{{ target_user }}/GNS3/images ]; then
-          find /home/{{ target_user }}/GNS3/images
+        if [ -d /home/{{ target_user }}/GNS3 ]; then
+          find /home/{{ target_user }}/GNS3
         else
           echo "DIRECTORY NOT FOUND"
         fi
