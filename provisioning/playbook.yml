@@ -112,6 +112,15 @@
         group: "{{ target_user }}"
         mode: '0755'
 
+    - name: List contents of /opt
+      command: ls -lah /opt
+      register: opt_contents
+      changed_when: false
+    
+    - name: Print contents of /opt
+      debug:
+        var: opt_contents.stdout_lines
+
     # 11. Locate the source folder to verify its existence
     - name: Check if source /opt/gns3/images directory exists
       ansible.builtin.stat:
