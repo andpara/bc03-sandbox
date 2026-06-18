@@ -111,6 +111,35 @@
         owner: "{{ target_user }}"
         group: "{{ target_user }}"
         mode: '0755'
+    
+    - name: List contents of /opt/gns3/images
+      shell: |
+        if [ -d /opt/gns3/images ]; then
+          find /opt/gns3/images
+        else
+          echo "DIRECTORY NOT FOUND"
+        fi
+      register: opt_images_listing
+      changed_when: false
+    
+    - name: Print /opt/gns3/images contents
+      debug:
+        msg: "{{ opt_images_listing.stdout_lines }}"
+
+
+    - name: List contents of trainee GNS3 images
+      shell: |
+        if [ -d /home/{{ target_user }}/GNS3/images ]; then
+          find /home/{{ target_user }}/GNS3/images
+        else
+          echo "DIRECTORY NOT FOUND"
+        fi
+      register: home_images_listing
+      changed_when: false
+    
+    - name: Print trainee GNS3 images contents
+      debug:
+        msg: "{{ home_images_listing.stdout_lines }}"        
 
     # 11. Locate the source folder to verify its existence
     - name: Check source location
@@ -128,7 +157,7 @@
       fail:
         msg: >
           Fatal: GNS3 images were not found in either
-          /opt/gns3/images or /home/{{ target_user }}/GNS3/images
+          /opt/gns3/images or /home/{{ target_user }}/GNS3/images.
           Stopping playbook execution.
       when:
         - not images_in_opt.stat.exists
