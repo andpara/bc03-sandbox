@@ -1,4 +1,4 @@
-## Original Source
+Image OS: xubuntu-noble  
+Gui Access: yes  
 
-This project is based on the following source:
-https://github.com/cyberrangecz/image-xubuntu-noble
+The example above includes the installation of GNS3 (https://docs.gns3.com) on Xubuntu.
