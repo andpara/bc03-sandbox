@@ -3,7 +3,7 @@ name: xubuntu-noble-testing
 hosts:
   - name: xubuntu-desktop
     base_box: 
-      image: xubuntu-noble-x86_64
+      image: btcmp03-xubuntu-24.04-x86_64
       mgmt_user: ubuntu
     flavor: c4_r8_d60
 
