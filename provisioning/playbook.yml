@@ -21,7 +21,7 @@
         content: |
           [User]
           SystemAccount=true
-        dest: "/var/lib/AccountsService/users/{{ target_user }}"
+        dest: "/var/lib/AccountsService/users/ubuntu"
         mode: '0644'
 
     # 2. Remove colord
