@@ -1,35 +1,104 @@
-- name: Hello world
+---
+- name: Configure GNS3 and Xubuntu Desktop for Trainee
   hosts: xubuntu-desktop
   gather_facts: yes
   become: yes
+
+  vars:
+    # Target username
+    target_user: trainee
+
   roles:
     - name: user-access
-      user_access_username: user
-      user_access_password: Password123
-      user_access_sudo: True
-      
+      user_access_username: "{{ target_user }}"
+      user_access_password: btcmp03
+      user_access_sudo: true
+
   tasks:
-    - name: Print message
-      debug:
-        msg: "installing gns3 ..."
-        
-    - name: Install GNS3 repository
-      apt_repository:
+    # 1. AccountsService configuration
+    - name: Hide system account in login screen
+      ansible.builtin.copy:
+        content: |
+          [User]
+          SystemAccount=true
+        dest: "/var/lib/AccountsService/users/{{ target_user }}"
+        mode: '0644'
+
+    # 2. Remove colord
+    - name: Purge colord package
+      ansible.builtin.apt:
+        name: colord
+        state: absent
+        purge: true
+
+    # 3. Apply high-DPI scaling
+    - name: Set XFCE DPI to 160
+      ansible.builtin.shell: |
+        dbus-launch xfconf-query -c xsettings -p /Xft/DPI -s 160
+      become_user: "{{ target_user }}"
+      changed_when: true
+      failed_when: false
+
+    # 4. Automate silent software installation prompts
+    - name: Preseed Debconf answers for GNS3 and Wireshark
+      ansible.builtin.debconf:
+        name: "{{ item.name }}"
+        question: "{{ item.question }}"
+        vtype: boolean
+        value: "true"
+      loop:
+        - { name: 'wireshark-common', question: 'wireshark-common/install-setuid' }
+        - { name: 'gns3-server', question: 'gns3-server/capture-users-group-error' }
+        - { name: 'ubridge', question: 'ubridge/ubridge-suid' }
+
+    # 5. Connect GNS3 repository
+    - name: Add GNS3 PPA repository
+      ansible.builtin.apt_repository:
         repo: ppa:gns3/ppa
         state: present
-    
-    - name: Update apt cache
-      apt:
-        update_cache: yes
-    
-    - name: Install GNS3
-      apt:
+        update_cache: true
+
+    # 6. Install hypervisor layers and application bundle
+    - name: Install KVM, Libvirt, and GNS3 packages
+      ansible.builtin.apt:
         name:
+          - qemu-kvm
+          - libvirt-daemon-system
+          - libvirt-clients
+          - bridge-utils
           - gns3-gui
           - gns3-server
         state: present
-        
-    - name: change ubridge permissions
-      file:
+        update_cache: true
+        dpkg_options: 'force-confdef,force-confold'
+
+    # 7. Enable non-root packet links (SUID 4755)
+    - name: Change ubridge permissions
+      ansible.builtin.file:
         path: /usr/bin/ubridge
+        mode: '4755'
+
+    # 8. Handle graphical desktop entry points
+    - name: Create Desktop directory for trainee
+      ansible.builtin.file:
+        path: "/home/{{ target_user }}/Desktop"
+        state: directory
+        owner: "{{ target_user }}"
+        group: "{{ target_user }}"
         mode: '0755'
+
+    - name: Copy GNS3 desktop shortcut to trainee Desktop
+      ansible.builtin.copy:
+        src: /usr/share/applications/gns3.desktop
+        dest: "/home/{{ target_user }}/Desktop/gns3.desktop"
+        remote_src: true
+        owner: "{{ target_user }}"
+        group: "{{ target_user }}"
+        mode: '0755'
+
+    # 9. Elevate profile virtualization & capture capabilities
+    - name: Add trainee to required groups
+      ansible.builtin.user:
+        name: "{{ target_user }}"
+        groups: libvirt,ubridge,wireshark,kvm
+        append: true
