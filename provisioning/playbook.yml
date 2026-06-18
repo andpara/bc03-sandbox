@@ -102,3 +102,46 @@
         name: "{{ target_user }}"
         groups: libvirt,ubridge,wireshark,kvm
         append: true
+
+    # 10. Create base GNS3 directory structure for the trainee profile
+    - name: Create GNS3 directory in trainee home
+      ansible.builtin.file:
+        path: "/home/{{ target_user }}/GNS3"
+        state: directory
+        owner: "{{ target_user }}"
+        group: "{{ target_user }}"
+        mode: '0755'
+
+    # 11. Locate the source folder to verify its existence
+    - name: Check if source /opt/gns3/images directory exists
+      ansible.builtin.stat:
+        path: /opt/gns3/images
+      register: gns3_source_dir
+
+    # 12. Hard stop if the source images directory is completely missing
+    - name: Enforce existence of source images folder
+      ansible.builtin.fail:
+        msg: "Fatal: /opt/gns3/images does not exist! Stopping playbook execution."
+      when: not gns3_source_dir.stat.exists or not gns3_source_dir.stat.isdir
+
+    # 13. Move Cisco images to the target trainee profile folder
+    - name: Move GNS3 images to trainee home directory
+      ansible.builtin.command:
+        cmd: mv /opt/gns3/images /home/{{ target_user }}/GNS3/
+      changed_when: true
+
+    # 14. Fix file permissions recursively for the trainee profile
+    - name: Ensure correct ownership of moved GNS3 images
+      ansible.builtin.file:
+        path: "/home/{{ target_user }}/GNS3/images"
+        state: directory
+        recurse: true
+        owner: "{{ target_user }}"
+        group: "{{ target_user }}"
+
+- name: Set up command logging
+  hosts: xubuntu-desktop
+  become: yes
+  roles:
+    - role: sandbox-logging
+      slf_destination_port: '{% if hostvars["man"] is defined -%} 514 {%- else -%} 515 {%- endif %}'
