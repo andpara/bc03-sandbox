@@ -1,18 +1,13 @@
-name: xubuntu-noble-testing
+name: bc03-sandbox
 
-hosts:
+hosts: []
+
+routers:
   - name: xubuntu-desktop
     base_box: 
       image: btcmp03-xubuntu-24.04-x86_64
       mgmt_user: ubuntu
-    flavor: c4_r8_d60
-
-routers:
-  - name: router
-    base_box:
-      image: debian-12-x86_64
-      mgmt_user: debian
-    flavor: standard.small
+    flavor: c4_r5_d12
 
 networks:
   - name: network
@@ -20,15 +15,10 @@ networks:
 
 wan:
   name: internet-connection
-  cidr: 100.100.100.0/24
-
-net_mappings:
-    - host: xubuntu-desktop
-      network: network
-      ip: 10.0.0.10
+  cidr: 10.10.10.0/24
 
 router_mappings:
-    - router: router
+    - router: xubuntu-desktop
       network: network
       ip: 10.0.0.1
 
