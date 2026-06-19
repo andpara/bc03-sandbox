@@ -24,13 +24,13 @@
         dest: "/var/lib/AccountsService/users/ubuntu"
         mode: '0644'
 
-    # 3. Apply high-DPI scaling
+    # 2. Apply high-DPI scaling
     - name: Set XFCE DPI to 170
       become_user: "{{ target_user }}"
       ansible.builtin.command:
         cmd: dbus-launch xfconf-query -c xsettings -p /Xft/DPI -s 170 --create -t int   
 
-    # 4. Automate silent software installation prompts
+    # 3. Automate silent software installation prompts
     - name: Preseed Debconf answers for GNS3 and Wireshark
       ansible.builtin.debconf:
         name: "{{ item.name }}"
@@ -42,14 +42,14 @@
         - { name: 'gns3-server', question: 'gns3-server/capture-users-group-error' }
         - { name: 'ubridge', question: 'ubridge/ubridge-suid' }
 
-    # 5. Connect GNS3 repository
+    # 4. Connect GNS3 repository
     - name: Add GNS3 PPA repository
       ansible.builtin.apt_repository:
         repo: ppa:gns3/ppa
         state: present
         update_cache: true
 
-    # 6. Install hypervisor layers and application bundle
+    # 5. Install hypervisor layers and application bundle
     - name: Install KVM, Libvirt, and GNS3 packages
       ansible.builtin.apt:
         name:
@@ -63,13 +63,13 @@
         update_cache: true
         dpkg_options: 'force-confdef,force-confold'
 
-    # 7. Enable non-root packet links (SUID 4755)
+    # 6. Enable non-root packet links (SUID 4755)
     - name: Change ubridge permissions
       ansible.builtin.file:
         path: /usr/bin/ubridge
         mode: '4755'
 
-    # 8. Handle graphical desktop entry points
+    # 7. Handle graphical desktop entry points
     - name: Create Desktop directory for trainee
       ansible.builtin.file:
         path: "/home/{{ target_user }}/Desktop"
@@ -96,14 +96,14 @@
       become_user: "{{ target_user }}"
       changed_when: false
 
-    # 9. Elevate profile virtualization & capture capabilities
+    # 8. Elevate profile virtualization & capture capabilities
     - name: Add trainee to required groups
       ansible.builtin.user:
         name: "{{ target_user }}"
         groups: libvirt,ubridge,wireshark,kvm
         append: true
 
-    # 2. FIX: Disable Colord Authentication Login Popups
+    # 9. Disable Colord Authentication Login Popups
     - name: Create Polkit rule to disable colord password prompts
       ansible.builtin.copy:
         content: |
@@ -121,20 +121,30 @@
         dest: "/etc/polkit-1/rules.d/45-allow-colord.rules"
         mode: '0644'
 
-    # 11. Locate the source folder to verify its existence
-    - name: Check source location
-      stat:
+    # 10. Verify existence of source and destination folders
+    - name: Check source location of GNS3 data
+      ansible.builtin.stat:
         path: /opt/trainee/GNS3
       register: images_in_opt
     
-    - name: Check destination location
-      stat:
+    - name: Check destination location of GNS3 data
+      ansible.builtin.stat:
         path: /home/{{ target_user }}/GNS3
       register: images_in_home
 
-    # 12. Hard stop if the images directory is completely missing
+    - name: Check source location of GNS3 config
+      ansible.builtin.stat:
+        path: /opt/trainee/.config/GNS3
+      register: config_in_opt
+
+    - name: Check destination location of GNS3 configuration
+      ansible.builtin.stat:
+        path: /home/{{ target_user }}/.config/GNS3
+      register: config_in_home
+
+    # 11. Hard stop if the images directory is completely missing
     - name: Fail if images are missing
-      fail:
+      ansible.builtin.fail:
         msg: >
           Fatal: GNS3 images were not found in either
           /opt/trainee/GNS3 or /home/{{ target_user }}/GNS3.
@@ -143,35 +153,45 @@
         - not images_in_opt.stat.exists
         - not images_in_home.stat.exists
 
-    # 13. Move images to the target trainee profile folder
+    # 12. Move images and configuration to the target trainee profile folder
     - name: Move GNS3 project to trainee home directory
-      command:
+      ansible.builtin.command:
         cmd: mv /opt/trainee/GNS3 /home/{{ target_user }}/
       when:
         - images_in_opt.stat.exists
         - not images_in_home.stat.exists
       changed_when: true
 
-    - name: Move config to trainee home directory
-      command:
-        cmd: mv /opt/trainee/.config /home/{{ target_user }}/
+    - name: Ensure target .config directory exists
+      ansible.builtin.file:
+        path: "/home/{{ target_user }}/.config"
+        state: directory
+        owner: "{{ target_user }}"
+        group: "{{ target_user }}"
+        mode: '0755'
       when:
-        - images_in_opt.stat.exists
-        - not images_in_home.stat.exists
+        - config_in_opt.stat.exists
+
+    - name: Move GNS3 configuration to trainee home directory
+      ansible.builtin.command:
+        cmd: mv /opt/trainee/.config/GNS3 /home/{{ target_user }}/.config/
+      when:
+        - config_in_opt.stat.exists
+        - not config_in_home.stat.exists
       changed_when: true      
 
-    # 14. Fix file permissions recursively for the trainee profile
-    - name: Ensure correct ownership of GNS3 project
-      file:
+    # 13. Fix file permissions recursively for the trainee profile
+    - name: Ensure correct ownership of GNS3 project directory
+      ansible.builtin.file:
         path: "/home/{{ target_user }}/GNS3"
         state: directory
         recurse: true
         owner: "{{ target_user }}"
         group: "{{ target_user }}"
 
-    - name: Ensure correct ownership of GNS3 trainee config
-      file:
-        path: "/home/{{ target_user }}/.config"
+    - name: Ensure correct ownership of GNS3 trainee config directory
+      ansible.builtin.file:
+        path: "/home/{{ target_user }}/.config/GNS3"
         state: directory
         recurse: true
         owner: "{{ target_user }}"
