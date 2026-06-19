@@ -94,12 +94,6 @@
         group: "{{ target_user }}"
         mode: '0755'
 
-    - name: Mark GNS3 launcher as trusted
-      become_user: "{{ target_user }}"
-      ansible.builtin.command:
-        cmd: gio set "/home/{{ target_user }}/Desktop/gns3.desktop" metadata::trusted true
-            
-
     # 9. Elevate profile virtualization & capture capabilities
     - name: Add trainee to required groups
       ansible.builtin.user:
