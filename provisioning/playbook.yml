@@ -87,6 +87,15 @@
         group: "{{ target_user }}"
         mode: '0755'
 
+    - name: Force Xfce to trust the GNS3 desktop shortcut
+      ansible.builtin.shell: |
+        FILE="/home/{{ target_user }}/Desktop/gns3.desktop"
+        CHECKSUM=$(sha256sum "$FILE" | awk '{print $1}')
+        dbus-run-session gio set -t string "$FILE" metadata::xfce-exe-checksum "$CHECKSUM"
+      become: yes
+      become_user: "{{ target_user }}"
+      changed_when: false
+
     # 9. Elevate profile virtualization & capture capabilities
     - name: Add trainee to required groups
       ansible.builtin.user:
@@ -94,19 +103,28 @@
         groups: libvirt,ubridge,wireshark,kvm
         append: true
 
-    # 10. Create base GNS3 directory structure for the trainee profile
-    - name: Create GNS3 directory in trainee home
-      ansible.builtin.file:
-        path: "/home/{{ target_user }}/GNS3"
-        state: directory
-        owner: "{{ target_user }}"
-        group: "{{ target_user }}"
-        mode: '0755' 
+    # 2. FIX: Disable Colord Authentication Login Popups
+    - name: Create Polkit rule to disable colord password prompts
+      ansible.builtin.copy:
+        content: |
+          polkit.addRule(function(action, subject) {
+              if ((action.id == "org.freedesktop.color-manager.create-device" ||
+                   action.id == "org.freedesktop.color-manager.create-profile" ||
+                   action.id == "org.freedesktop.color-manager.delete-device" ||
+                   action.id == "org.freedesktop.color-manager.delete-profile" ||
+                   action.id == "org.freedesktop.color-manager.modify-device" ||
+                   action.id == "org.freedesktop.color-manager.modify-profile") &&
+                  subject.isInGroup("{{ target_user }}")) {
+                  return polkit.Result.YES;
+              }
+          });
+        dest: "/etc/polkit-1/rules.d/45-allow-colord.rules"
+        mode: '0644'
 
     # 11. Locate the source folder to verify its existence
     - name: Check source location
       stat:
-        path: /opt/trainee
+        path: /opt/trainee/GNS3
       register: images_in_opt
     
     - name: Check destination location
@@ -119,7 +137,7 @@
       fail:
         msg: >
           Fatal: GNS3 images were not found in either
-          /opt/trainee or /home/{{ target_user }}/GNS3.
+          /opt/trainee/GNS3 or /home/{{ target_user }}/GNS3.
           Stopping playbook execution.
       when:
         - not images_in_opt.stat.exists
