@@ -7,7 +7,7 @@ routers:
     base_box: 
       image: btcmp03-xubuntu-24.04-x86_64
       mgmt_user: ubuntu
-    flavor: c4_r5_d12
+    flavor: c6_r5_d12
 
 networks:
   - name: network
