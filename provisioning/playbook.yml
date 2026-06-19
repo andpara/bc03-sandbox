@@ -87,15 +87,6 @@
         group: "{{ target_user }}"
         mode: '0755'
 
-    - name: Force Xfce to trust the GNS3 desktop shortcut
-      ansible.builtin.shell: |
-        FILE="/home/{{ target_user }}/Desktop/gns3.desktop"
-        CHECKSUM=$(sha256sum "$FILE" | awk '{print $1}')
-        gio set -t string "$FILE" metadata::xfce-exe-checksum "$CHECKSUM"
-      become: yes
-      become_user: "{{ target_user }}"
-      changed_when: false
-
     # 9. Elevate profile virtualization & capture capabilities
     - name: Add trainee to required groups
       ansible.builtin.user:
