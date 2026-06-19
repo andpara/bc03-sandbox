@@ -32,10 +32,10 @@
         purge: true
 
     # 3. Apply high-DPI scaling
-    - name: Set XFCE DPI to 160
+    - name: Set XFCE DPI to 170
       become_user: "{{ target_user }}"
       ansible.builtin.command:
-        cmd: dbus-launch xfconf-query -c xsettings -p /Xft/DPI -s 160      
+        cmd: dbus-launch xfconf-query -c xsettings -p /Xft/DPI -s 170 --create -t int   
 
     # 4. Automate silent software installation prompts
     - name: Preseed Debconf answers for GNS3 and Wireshark
