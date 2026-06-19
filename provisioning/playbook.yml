@@ -24,13 +24,6 @@
         dest: "/var/lib/AccountsService/users/ubuntu"
         mode: '0644'
 
-    # 2. Remove colord
-    - name: Purge colord package
-      ansible.builtin.apt:
-        name: colord
-        state: absent
-        purge: true
-
     # 3. Apply high-DPI scaling
     - name: Set XFCE DPI to 170
       become_user: "{{ target_user }}"
