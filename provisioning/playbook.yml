@@ -33,11 +33,9 @@
 
     # 3. Apply high-DPI scaling
     - name: Set XFCE DPI to 160
-      ansible.builtin.shell: |
-        dbus-launch xfconf-query -c xsettings -p /Xft/DPI -s 160
       become_user: "{{ target_user }}"
-      changed_when: true
-      failed_when: false
+      ansible.builtin.command:
+        cmd: dbus-launch xfconf-query -c xsettings -p /Xft/DPI -s 160      
 
     # 4. Automate silent software installation prompts
     - name: Preseed Debconf answers for GNS3 and Wireshark
@@ -96,6 +94,12 @@
         group: "{{ target_user }}"
         mode: '0755'
 
+    - name: Mark GNS3 launcher as trusted
+      become_user: "{{ target_user }}"
+      ansible.builtin.command:
+        cmd: gio set "/home/{{ target_user }}/Desktop/gns3.desktop" metadata::trusted true
+            
+
     # 9. Elevate profile virtualization & capture capabilities
     - name: Add trainee to required groups
       ansible.builtin.user:
@@ -110,36 +114,7 @@
         state: directory
         owner: "{{ target_user }}"
         group: "{{ target_user }}"
-        mode: '0755'
-    
-    - name: List contents of /opt/gns3
-      shell: |
-        if [ -d /opt/gns3 ]; then
-          find /opt/gns3
-        else
-          echo "DIRECTORY NOT FOUND"
-        fi
-      register: opt_images_listing
-      changed_when: false
-    
-    - name: Print /opt/gns3 contents
-      debug:
-        msg: "{{ opt_images_listing.stdout_lines }}"
-
-
-    - name: List contents of trainee GNS3 images
-      shell: |
-        if [ -d /home/{{ target_user }}/GNS3 ]; then
-          find /home/{{ target_user }}/GNS3
-        else
-          echo "DIRECTORY NOT FOUND"
-        fi
-      register: home_images_listing
-      changed_when: false
-    
-    - name: Print trainee GNS3 images contents
-      debug:
-        msg: "{{ home_images_listing.stdout_lines }}"        
+        mode: '0755' 
 
     # 11. Locate the source folder to verify its existence
     - name: Check source location
