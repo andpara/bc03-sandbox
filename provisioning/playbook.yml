@@ -106,12 +106,12 @@
     # 11. Locate the source folder to verify its existence
     - name: Check source location
       stat:
-        path: /opt/gns3/images
+        path: /opt/trainee
       register: images_in_opt
     
     - name: Check destination location
       stat:
-        path: /home/{{ target_user }}/GNS3/images
+        path: /home/{{ target_user }}/GNS3
       register: images_in_home
 
     # 12. Hard stop if the images directory is completely missing
@@ -119,29 +119,45 @@
       fail:
         msg: >
           Fatal: GNS3 images were not found in either
-          /opt/gns3/images or /home/{{ target_user }}/GNS3/images.
+          /opt/trainee or /home/{{ target_user }}/GNS3.
           Stopping playbook execution.
       when:
         - not images_in_opt.stat.exists
         - not images_in_home.stat.exists
 
     # 13. Move images to the target trainee profile folder
-    - name: Move GNS3 images to trainee home directory
+    - name: Move GNS3 project to trainee home directory
       command:
-        cmd: mv /opt/gns3/images /home/{{ target_user }}/GNS3/
+        cmd: mv /opt/trainee/GNS3 /home/{{ target_user }}/
       when:
         - images_in_opt.stat.exists
         - not images_in_home.stat.exists
       changed_when: true
 
+    - name: Move config to trainee home directory
+      command:
+        cmd: mv /opt/trainee/.config /home/{{ target_user }}/
+      when:
+        - images_in_opt.stat.exists
+        - not images_in_home.stat.exists
+      changed_when: true      
+
     # 14. Fix file permissions recursively for the trainee profile
-    - name: Ensure correct ownership of GNS3 images
+    - name: Ensure correct ownership of GNS3 project
       file:
-        path: "/home/{{ target_user }}/GNS3/images"
+        path: "/home/{{ target_user }}/GNS3"
         state: directory
         recurse: true
         owner: "{{ target_user }}"
         group: "{{ target_user }}"
+
+    - name: Ensure correct ownership of GNS3 trainee config
+      file:
+        path: "/home/{{ target_user }}/.config"
+        state: directory
+        recurse: true
+        owner: "{{ target_user }}"
+        group: "{{ target_user }}"        
 
 - name: Set up command logging
   hosts: xubuntu-desktop
